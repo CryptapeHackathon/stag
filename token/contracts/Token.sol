@@ -9,8 +9,9 @@ pragma solidity ^0.4.19;
 import "./SafeMath.sol";
 import "./EIP20Interface.sol";
 import "./Owned.sol";
+import "./SecurityPolicy.sol";
 
-contract StagToken is Owned, EIP20Interface {
+contract StagToken is Owned, EIP20Interface, SecurityPolicy {
 
     using SafeMath for uint256;
 
@@ -53,7 +54,7 @@ contract StagToken is Owned, EIP20Interface {
         balance = balances[_owner];
     }
 
-    function transfer(address _to, uint256 _value) public returns (bool success) {
+    function transfer(address _to, uint256 _value) public checkPolicy(msg.sender, _value) returns (bool success) {
         balances[msg.sender] = balances[msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
         Transfer(msg.sender, _to, _value);
@@ -68,7 +69,7 @@ contract StagToken is Owned, EIP20Interface {
         success = true;
     }
 
-    function approve(address _spender, uint256 _value) public returns (bool success) {
+    function approve(address _spender, uint256 _value) public checkPolicy(_spender, _value) returns (bool success) {
         allowed[msg.sender][_spender] = _value;
         Approval(msg.sender, _spender, _value);
         success = true;
