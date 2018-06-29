@@ -39,14 +39,10 @@ npm install -g ganache-cli@6.1.4
 
 ## Running the tests
 
-1. ganache-cli
+1. ganache-cli -l 1000000000
 
 2. truffle test
 
-## Deployment
-
-//todo: Add additional notes about how to deploy this on a live system
-
-## Design 
+## Design
 
 ![Design](https://github.com/CryptapeHackathon/stag/blob/master/images/design.png)
