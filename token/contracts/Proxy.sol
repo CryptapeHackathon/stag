@@ -7,7 +7,7 @@ pragma solidity ^0.4.19;
 // -------------------------------------------------------------------------
 
 import "./SafeMath.sol";
-import "./Token.sol";
+import "./StagTokenInterface.sol";
 
 library ArrayUtil {
 
@@ -226,7 +226,7 @@ contract Proxy {
 
     function Proxy(uint256 _threshold, uint256 _minApprove, bytes32[] _friends, bytes32[] _approvers, string _salt) 
         public 
-        thresholdLimit(_threshold) 
+        thresholdLimit(_threshold)
         minApproveLimit(_minApprove)
     {
         owner = msg.sender;
@@ -235,6 +235,13 @@ contract Proxy {
         friends = _friends;
         approvers = _approvers;
         salt = _salt;
+    }
+
+    function friendsList() public
+        view
+        returns(bytes32[])
+    {
+        return friends;        
     }
 
     function addFriend(bytes32 friend) public
