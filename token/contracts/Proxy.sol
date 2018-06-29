@@ -1,6 +1,13 @@
 pragma solidity ^0.4.19;
+
+// -------------------------------------------------------------------------
+// Proxy
+//
+// Copyright (c) 2018 CryptapeHackathon. The MIT Licence.
+// -------------------------------------------------------------------------
+
 import "./SafeMath.sol";
-import "./EIP20Interface.sol";
+import "./Token.sol";
 
 library ArrayUtil {
 
@@ -163,6 +170,7 @@ contract Proxy {
     using SafeMath for uint256;
 
     address public owner;
+    // For recover
     bytes32[] public friends;
     // Sha3(address) for safety
     mapping(bytes32 => bool) public friendSet;
@@ -170,6 +178,28 @@ contract Proxy {
     mapping(bytes32 => address) public recoverSet;
     mapping(address => uint256) public addressSet;
     address[] public addressList;
+
+    // For transferDirectly and approveDirectly
+    bytes32[] public approvers;
+    // Sha3(address) for safety
+    mapping(bytes32 => bool) public approverSet;
+    uint256 public minApprove;
+
+    enum Category { Transfer, Allowance }
+    enum Status { Pending, Finish, Failed }
+
+    struct Proposal {
+        Category category;
+        address contractAddress;
+        address beneficiary;
+        uint256 value;
+        Status status;
+        bytes32[] approvers;
+        uint256 minApprove;
+    }
+
+    uint256 public proposalId;
+    mapping(uint256 => Proposal) public proposals;
 
     modifier onlyOwner {
         require(msg.sender == owner);
@@ -181,9 +211,10 @@ contract Proxy {
         _;
     }
 
-    function Proxy(uint256 _threshold) public thresholdLimit(_threshold) {
+    function Proxy(uint256 _threshold, uint256 _minApprove) public thresholdLimit(_threshold) {
         owner = msg.sender;
         threshold = _threshold;
+        minApprove = _minApprove;
     }
 
     function addFriend(bytes32 friend) public onlyOwner returns(bool) {
@@ -207,10 +238,11 @@ contract Proxy {
     }
  
     function recover(address newAddress) public returns(bool) {
-        require(owner != newAddress);
+        // Only friend
         bytes32 friend = keccak256(msg.sender);
-        address oldAddress = recoverSet[friend];
         require(friendSet[friend]);
+        require(owner != newAddress);
+        address oldAddress = recoverSet[friend];
         if (recoverSet[friend] != newAddress && addressSet[oldAddress] > 0) {
             addressSet[oldAddress] = addressSet[oldAddress].sub(1);
             recoverSet[friend] = newAddress;
@@ -240,20 +272,99 @@ contract Proxy {
     // TODO: Later we will make this as universal utility not only for erc20.
     // Below are erc20 methods
     // ERC20 transfer
-    function transfer(address _erc20, address _to, uint256 _value) public returns (bool success) {
-        EIP20Interface erc20 = EIP20Interface(_erc20);
+    function transfer(address _erc20, address _to, uint256 _value) public onlyOwner returns (bool success) {
+        StagTokenInterface erc20 = StagTokenInterface(_erc20);
         return erc20.transfer(_to, _value);
     }
 
-    // ERC20 transferFrom
-    function transferFrom(address _erc20, address _from, address _to, uint256 _value) public returns (bool success) {
-        EIP20Interface erc20 = EIP20Interface(_erc20);
-        return erc20.transferFrom(_from, _to, _value);
+    // ERC20 approve
+    function approve(address _erc20, address _spender, uint256 _value) public onlyOwner returns (bool success) {
+        StagTokenInterface erc20 = StagTokenInterface(_erc20);
+        return erc20.approve(_spender, _value);
     }
 
-    // ERC20 approve
-    function approve(address _erc20, address _spender, uint256 _value) public returns (bool success) {
-        EIP20Interface erc20 = EIP20Interface(_erc20);
-        return erc20.approve(_spender, _value);
+    function addApprover(bytes32 approver) public onlyOwner returns(bool) {
+        if (!approverSet[approver]) {
+            approvers.push(approver);
+            approverSet[approver] = true;
+        }
+    }
+
+    function removeApprover(bytes32 approver) public onlyOwner returns(bool) {
+        if (approverSet[approver]) {
+            approverSet[approver] = false;
+            
+            ArrayUtil.remove(approver, approvers);
+            return true;
+        }
+    }
+
+    function transferDirectly(address _erc20, address _to, uint256 _value) public onlyOwner returns (uint256 id) {
+        proposalId++;
+        proposals[proposalId] = Proposal({
+            category: Category.Transfer,
+            contractAddress: _erc20,
+            beneficiary: _to,
+            value: _value,
+            status: Status.Pending,
+            approvers: new bytes32[](0),
+            minApprove: minApprove
+        });
+        
+        return proposalId;
+    }
+
+    function approveDirectly(address _erc20, address _spender, uint256 _value) public onlyOwner returns (uint256 id) {
+        proposalId++;
+        proposals[proposalId] = Proposal({
+            category: Category.Allowance,
+            contractAddress: _erc20,
+            beneficiary: _spender,
+            value: _value,
+            status: Status.Pending,
+            approvers: new bytes32[](0),
+            minApprove: minApprove
+        });
+        
+        return proposalId;
+    }
+
+    function approve(uint256 id) public {
+        // Only approver
+        bytes32 approver = keccak256(msg.sender);
+        require(approverSet[approver]);
+        
+        Proposal storage proposal = proposals[id];
+        // Only Pending proposal
+        require(proposal.status == Status.Pending);
+        bool isExist;
+        bytes32[] storage proposalApprovers = proposal.approvers;
+        for (uint i = 0; i < approvers.length; i++) {
+            if (proposalApprovers[i] == approver) {
+                isExist = true;
+                break;
+            }
+        }
+
+        if (isExist) {
+            proposalApprovers.push(approver);
+        }
+
+        if (proposalApprovers.length >= proposal.minApprove) {
+            StagTokenInterface erc20 = StagTokenInterface(proposal.contractAddress);
+            if (proposal.category == Category.Transfer) {
+                if (erc20.transferDirectly(proposal.beneficiary, proposal.value)) {
+                    proposal.status = Status.Finish;
+                } else {
+                    proposal.status = Status.Failed;
+                }
+            } else {
+                if (erc20.approveDirectly(proposal.beneficiary, proposal.value)) {
+                    proposal.status = Status.Finish;
+                } else {
+                    proposal.status = Status.Failed;
+                }
+            }
+        }
     }
 }
