@@ -1,4 +1,5 @@
 import React, {Component, createRef} from 'react'
+import chain from '../utils/chain'
 import log from '../utils/log'
 import '../style/home.scss'
 
@@ -230,9 +231,11 @@ class Friend extends Component {
     }
     return (
       <div className="friendcell" key={props.address}>
-        <Namecell {...params}/>
-        <div>{props.address}</div>
-        <div onClick={this.removeFriend(props.address)}>-</div>
+        <div className="friendinfo">
+          <Namecell {...params}/>
+          <div className="">{props.address}</div>
+        </div>
+        <div className="friendremoveButton" onClick={this.removeFriend(props.address)}><div className="minus"/></div>
       </div>
     )
   }

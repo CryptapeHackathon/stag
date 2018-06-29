@@ -4,6 +4,7 @@
     "build": "rimraf public && webpack -p --config config/webpack.config.prod.js"
   },
   "dependencies": {
+    "@nervos/web3": "^0.17.12",
     "autoprefixer": "^7.2.5",
     "axios": "^0.16.2",
     "babel-polyfill": "^6.26.0"
