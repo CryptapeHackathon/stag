@@ -187,6 +187,8 @@ contract Proxy {
     // Time lock
     uint256 public lock;
     string public salt;
+    uint256 public lastOwnerAction;
+    address public beneficiary;
 
     enum Category { Transfer, Allowance }
     enum Status { Pending, Finish, Failed }
@@ -235,6 +237,16 @@ contract Proxy {
         friends = _friends;
         approvers = _approvers;
         salt = _salt;
+        lastOwnerAction = now;
+    }
+
+    function setBeneficiary(address _beneficiary) public
+        onlyOwner
+        returns(bool)
+    {
+        beneficiary = _beneficiary;
+        lastOwnerAction = now;
+        return true;
     }
 
     function friendsList() public
@@ -249,6 +261,7 @@ contract Proxy {
         checkTimeLock
         returns(bool)
     {
+        lastOwnerAction = now;
         if (!friendSet[friend]) {
             friends.push(friend);
             friendSet[friend] = true;
@@ -262,6 +275,7 @@ contract Proxy {
         checkTimeLock
         returns(bool)
     {
+        lastOwnerAction = now;
         if (friendSet[friend]) {
             friendSet[friend] = false;
             
@@ -279,6 +293,7 @@ contract Proxy {
     {
         threshold = _threshold;
         lock += 24 hours;
+        lastOwnerAction = now;
         return true;
     }
  
@@ -326,6 +341,7 @@ contract Proxy {
         onlyOwner 
         returns (bool success)
     {
+        lastOwnerAction = now;
         StagTokenInterface erc20 = StagTokenInterface(_erc20);
         return erc20.transfer(_to, _value);
     }
@@ -335,6 +351,7 @@ contract Proxy {
         onlyOwner 
         returns (bool success)
     {
+        lastOwnerAction = now;
         StagTokenInterface erc20 = StagTokenInterface(_erc20);
         return erc20.approve(_spender, _value);
     }
@@ -344,6 +361,7 @@ contract Proxy {
         checkTimeLock
         returns(bool)
     {
+        lastOwnerAction = now;
         if (!approverSet[approver]) {
             approvers.push(approver);
             approverSet[approver] = true;
@@ -357,6 +375,7 @@ contract Proxy {
         checkTimeLock
         returns(bool)
     {
+        lastOwnerAction = now;
         if (approverSet[approver]) {
             approverSet[approver] = false;
             
@@ -381,6 +400,7 @@ contract Proxy {
         onlyOwner 
         returns (uint256 id)
     {
+        lastOwnerAction = now;
         proposalId++;
         proposals[proposalId] = Proposal({
             category: Category.Transfer,
@@ -399,6 +419,7 @@ contract Proxy {
         onlyOwner 
         returns (uint256 id)
     {
+        lastOwnerAction = now;
         proposalId++;
         proposals[proposalId] = Proposal({
             category: Category.Allowance,
@@ -453,5 +474,11 @@ contract Proxy {
             }
         }
         return true;
+    }
+
+    function transferOwnership() public returns (bool) {
+        require(now > lastOwnerAction + 5 years);
+        require(beneficiary == msg.sender);
+        owner = msg.sender;
     }
 }
