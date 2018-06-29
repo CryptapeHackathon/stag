@@ -163,7 +163,7 @@ contract Proxy {
 
     address public owner;
     bytes32[] public friends;
-    // sha3(address) for safety
+    // Sha3(address) for safety
     mapping(bytes32 => bool) public friendSet;
     uint256 public threshold;
     mapping(bytes32 => address) public recoverSet;
@@ -175,9 +175,12 @@ contract Proxy {
         _;
     }
 
-    function Proxy(uint256 _threshold) public {
+    modifier thresholdLimit(uint _threshold) {
         require(_threshold >= 3);
+        _;
+    }
 
+    function Proxy(uint256 _threshold) public thresholdLimit(_threshold) {
         owner = msg.sender;
         threshold = _threshold;
     }
@@ -198,12 +201,12 @@ contract Proxy {
         }
     }
 
-    function setThreshold(uint256 _threshold) public onlyOwner returns(bool) {
-        require(_threshold > 3);
+    function setThreshold(uint256 _threshold) public onlyOwner thresholdLimit(_threshold) returns(bool) {
         threshold = _threshold;
     }
  
     function recover(address newAddress) public returns(bool) {
+        require(owner != newAddress);
         bytes32 friend = keccak256(msg.sender);
         address oldAddress = recoverSet[friend];
         require(friendSet[friend]);
