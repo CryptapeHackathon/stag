@@ -1,5 +1,6 @@
 pragma solidity ^0.4.19;
 import "./SafeMath.sol";
+import "./EIP20Interface.sol";
 
 library ArrayUtil {
 
@@ -234,5 +235,25 @@ contract Proxy {
 
             addressList.length = 0;
         }
+    }
+
+    // TODO: Later we will make this as universal utility not only for erc20.
+    // Below are erc20 methods
+    // ERC20 transfer
+    function transfer(address _erc20, address _to, uint256 _value) public returns (bool success) {
+        EIP20Interface erc20 = EIP20Interface(_erc20);
+        return erc20.transfer(_to, _value);
+    }
+
+    // ERC20 transferFrom
+    function transferFrom(address _erc20, address _from, address _to, uint256 _value) public returns (bool success) {
+        EIP20Interface erc20 = EIP20Interface(_erc20);
+        return erc20.transferFrom(_from, _to, _value);
+    }
+
+    // ERC20 approve
+    function approve(address _erc20, address _spender, uint256 _value) public returns (bool success) {
+        EIP20Interface erc20 = EIP20Interface(_erc20);
+        return erc20.approve(_spender, _value);
     }
 }
