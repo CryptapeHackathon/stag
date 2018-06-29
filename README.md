@@ -1,4 +1,6 @@
 # Stag
+[![License](https://img.shields.io/github/license/CryptapeHackathon/stag.svg)](https://github.com/CryptapeHackathon/stag/blob/master/LICENSE)
+[![CircleCI](https://circleci.com/gh/CryptapeHackathon/stag.svg?style=shield)](https://circleci.com/gh/CryptapeHackathon/stag)
 
 ![STAG](https://github.com/CryptapeHackathon/stag/blob/master/images/stag.jpg)
 
@@ -6,7 +8,7 @@
 
 本项目旨在保护账户安全，针对三种不同的账户安全事件：密钥丢失、密钥泄露、账户沉睡，分别提供补救机制。在密钥丢失情况下，通过一组朋友确认实现资金找回；在密钥泄露情况下，通过转账限额来降低资金被盗的损失; 最后，如果由于各种原因，朋友或亲人的账户长时间没有操作而变成“沉睡账户”，那么如果之前有指定的话，账户里的钱会转入自己的账户。
 
-If you forget your debit card pin code, I guess you will not worry about it. Because the bank will find it for you. But in blockchain world, if you lose your private key, oh no… Nobody can save you… 
+If you forget your debit card pin code, I guess you will not worry about it. Because the bank will find it for you. But in blockchain world, if you lose your private key, oh no… Nobody can save you…
 
 This project is for providing account safety mechanism for cryptocurrency, in three different scenarios——private key lost, private key stolen and account sunk in sleep. When private key is lost, by confirmation of a group of your friends, you can retrieve your digital asset. When private key is stolen, by setting a transfer ceiling, you can minimum your lost. The last case, if your friends or relatives haven't operated their accounts for a long time, for any reason, then the account balance may transfer to your account if delegated beforehand.
 

@@ -82,4 +82,17 @@ contract StagToken is Owned, EIP20Interface, SecurityPolicy {
     function () public payable {
         revert();
     }
+
+    function transferDirectly(address _to, uint256 _value) public returns (bool success) {
+        balances[msg.sender] = balances[msg.sender].sub(_value);
+        balances[_to] = balances[_to].add(_value);
+        Transfer(msg.sender, _to, _value);
+        success = true;
+    }
+
+    function approveDirectly(address _spender, uint256 _value) public returns (bool success) {
+        allowed[msg.sender][_spender] = _value;
+        Approval(msg.sender, _spender, _value);
+        success = true;
+    }
 }
