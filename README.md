@@ -23,22 +23,26 @@ This project is for providing account safety mechanism for cryptocurrency, in th
 
 * SafeMath and pass the oyente test
 * Sha3 + salt to hide friend address
+* Operation time lock
 
 ## Prerequisites
 
 * solc@v0.4.19
 * npm
 * truffle@v4.0.6
+* ganache-cli@6.1.4
 
 ```shell
 npm install -g truffle@v4.0.6
+npm install -g ganache-cli@6.1.4
 ```
 
 ## Running the tests
 
-//todo: Explain how to run the automated tests for this system
+1. ganache-cli
+
+2. truffle test
 
 ## Deployment
 
 //todo: Add additional notes about how to deploy this on a live system
-
