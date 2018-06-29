@@ -11,7 +11,12 @@ import "./EIP20Interface.sol";
 import "./Owned.sol";
 import "./SecurityPolicy.sol";
 
-contract StagToken is Owned, EIP20Interface, SecurityPolicy {
+contract StagTokenInterface is EIP20Interface {
+    function transferDirectly(address _to, uint256 _value) public returns (bool success);
+    function approveDirectly(address _spender, uint256 _value) public returns (bool success);
+}
+
+contract StagToken is Owned, StagTokenInterface, SecurityPolicy {
 
     using SafeMath for uint256;
 
