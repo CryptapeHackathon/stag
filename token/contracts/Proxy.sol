@@ -186,6 +186,7 @@ contract Proxy {
     uint256 public minApprove;
     // Time lock
     uint256 public lock;
+    string public salt;
 
     enum Category { Transfer, Allowance }
     enum Status { Pending, Finish, Failed }
@@ -223,7 +224,7 @@ contract Proxy {
         _;
     }    
 
-    function Proxy(uint256 _threshold, uint256 _minApprove, bytes32[] _friends, bytes32[] _approvers) 
+    function Proxy(uint256 _threshold, uint256 _minApprove, bytes32[] _friends, bytes32[] _approvers, string _salt) 
         public 
         thresholdLimit(_threshold) 
         minApproveLimit(_minApprove)
@@ -233,6 +234,7 @@ contract Proxy {
         minApprove = _minApprove;
         friends = _friends;
         approvers = _approvers;
+        salt = _salt;
     }
 
     function addFriend(bytes32 friend) public
@@ -277,9 +279,11 @@ contract Proxy {
         returns(bool)
     {
         // Only friend
-        bytes32 friend = keccak256(msg.sender);
+        bytes32 friend = keccak256(msg.sender, salt);
         require(friendSet[friend]);
+
         require(owner != newAddress);
+
         address oldAddress = recoverSet[friend];
         if (recoverSet[friend] != newAddress && addressSet[oldAddress] > 0) {
             addressSet[oldAddress] = addressSet[oldAddress].sub(1);
@@ -406,7 +410,7 @@ contract Proxy {
         returns (bool)
     {
         // Only approver
-        bytes32 approver = keccak256(msg.sender);
+        bytes32 approver = keccak256(msg.sender, salt);
         require(approverSet[approver]);
         
         Proposal storage proposal = proposals[id];

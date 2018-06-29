@@ -23,7 +23,7 @@ This project is for providing account safety mechanism for cryptocurrency, in th
 
 * SafeMath and pass the oyente test
 * Sha3 + salt to hide friend address
-* Important operation time lock
+* Operation time lock
 
 ## Prerequisites
 
