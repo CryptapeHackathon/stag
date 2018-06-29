@@ -20,13 +20,27 @@ contract SecurityPolicy {
     uint256 private defaultAmount;
     uint256 private defaultCount;
     uint256 private defaultInterval;
+    uint256 private maxAmount;
+    uint256 private maxCount;
+    uint256 private maxInterval;
+    uint256 private minAmount;
+    uint256 private minCount;
+    uint256 private minInterval;
+    uint256 private maxRecordsCount;
     mapping(address => PeriodicPolicy) private policies;
     mapping(address => TransferRecord[]) private allRecords;
 
     function SecurityPolicy() public {
-        defaultAmount = 10000;
+        defaultAmount = 1000;
         defaultCount = 10;
         defaultInterval = 86400;
+        minAmount = 100;
+        minCount = 1;
+        minInterval = 3600;
+        maxAmount = 10000;
+        maxCount = 100;
+        maxInterval = 2419200;
+        maxRecordsCount = 500;
     }
 
     modifier checkPolicy(address _sender, uint256 _value) {
@@ -66,10 +80,12 @@ contract SecurityPolicy {
             count.add(1);
         }
         records.length = count;
+        require(records.length <= maxRecordsCount);
     }
 
     function addRecord(address _sender, uint256 _value) private {
         TransferRecord[] storage records = allRecords[_sender];
+        require(records.length <= maxRecordsCount);
         records[records.length].amount = _value;
         records[records.length].timestamp = now;
     }
@@ -87,9 +103,9 @@ contract SecurityPolicy {
     }
 
     function updatePolicy(address _sender, uint256 _amount, uint256 _count, uint256 _interval) public returns (bool success){
-        require(_amount > 0);
-        require(_count > 0);
-        require(_interval > 0);
+        require(_amount >= minAmount && _amount <= maxAmount);
+        require(_count >= minCount && _count <= maxCount);
+        require(_interval >= minInterval && _interval <= maxCount);
         PeriodicPolicy storage policy = policies[_sender];
         policy.amount = _amount;
         policy.count = _count;
