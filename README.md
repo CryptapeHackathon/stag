@@ -39,9 +39,10 @@ npm install -g ganache-cli@6.1.4
 
 ## Running the tests
 
-1. ganache-cli -l 1000000000
-
-2. truffle test
+```shell
+ganache-cli -l 1000000000
+truffle test
+```
 
 ## Design
 
