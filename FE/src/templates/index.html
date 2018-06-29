@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <!--<link rel='shortcut icon' type='image/x-icon' href='/public/favicon.ico' />-->
+    <title><%= htmlWebpackPlugin.options.title %></title>
+    <!--下面是检测浏览器兼容性的代码-->
+    <script>
+      var $buoop = {vs: {i: 10, f: -4, o: -4, s: 8, c: -4}, api: 4};
+      function $buo_f() {
+        var e = document.createElement("script");
+        e.src = "//browser-update.org/update.min.js";
+        document.body.appendChild(e);
+      }
+      try {
+        document.addEventListener("DOMContentLoaded", $buo_f, false)
+      }
+      catch (e) {
+        window.attachEvent("onload", $buo_f)
+      }
+    </script>
+    <script src="//cdn.jsdelivr.net/gh/ethereum/web3.js/dist/web3.min.js"></script>
+</head>
+<body>
+<div id="root"></div>
+</body>
+<!--<div style="display: none">-->
+    <!--<script src="https://s22.cnzz.com/z_stat.php?id=1263867741&web_id=1263867741"></script>-->
+<!--</div>-->
+</html>
