@@ -46,3 +46,7 @@ npm install -g ganache-cli@6.1.4
 ## Deployment
 
 //todo: Add additional notes about how to deploy this on a live system
+
+## Design 
+
+![Design](https://github.com/CryptapeHackathon/stag/blob/master/images/design.png)
