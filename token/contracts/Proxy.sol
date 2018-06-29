@@ -184,6 +184,8 @@ contract Proxy {
     // Sha3(address) for safety
     mapping(bytes32 => bool) public approverSet;
     uint256 public minApprove;
+    // Time lock
+    uint256 public lock;
 
     enum Category { Transfer, Allowance }
     enum Status { Pending, Finish, Failed }
@@ -211,33 +213,69 @@ contract Proxy {
         _;
     }
 
-    function Proxy(uint256 _threshold, uint256 _minApprove) public thresholdLimit(_threshold) {
+    modifier minApproveLimit(uint _threshold) {
+        require(_threshold >= 2);
+        _;
+    }
+
+    modifier checkTimeLock() {
+        require(now > lock);
+        _;
+    }    
+
+    function Proxy(uint256 _threshold, uint256 _minApprove, bytes32[] _friends, bytes32[] _approvers) 
+        public 
+        thresholdLimit(_threshold) 
+        minApproveLimit(_minApprove)
+    {
         owner = msg.sender;
         threshold = _threshold;
         minApprove = _minApprove;
+        friends = _friends;
+        approvers = _approvers;
     }
 
-    function addFriend(bytes32 friend) public onlyOwner returns(bool) {
+    function addFriend(bytes32 friend) public
+        onlyOwner
+        checkTimeLock
+        returns(bool)
+    {
         if (!friendSet[friend]) {
             friends.push(friend);
             friendSet[friend] = true;
-        }
-    }
-
-    function removeFriend(bytes32 friend) public onlyOwner returns(bool) {
-        if (friendSet[friend]) {
-            friendSet[friend] = false;
-            
-            ArrayUtil.remove(friend, friends);
+            lock += 24 hours;
             return true;
         }
     }
 
-    function setThreshold(uint256 _threshold) public onlyOwner thresholdLimit(_threshold) returns(bool) {
+    function removeFriend(bytes32 friend) public
+        onlyOwner
+        checkTimeLock
+        returns(bool)
+    {
+        if (friendSet[friend]) {
+            friendSet[friend] = false;
+            
+            ArrayUtil.remove(friend, friends);
+            lock += 24 hours;
+            return true;
+        }
+    }
+
+    function setThreshold(uint256 _threshold) public 
+        onlyOwner
+        thresholdLimit(_threshold)
+        checkTimeLock
+        returns(bool)
+    {
         threshold = _threshold;
+        lock += 24 hours;
+        return true;
     }
  
-    function recover(address newAddress) public returns(bool) {
+    function recover(address newAddress) public 
+        returns(bool)
+    {
         // Only friend
         bytes32 friend = keccak256(msg.sender);
         require(friendSet[friend]);
@@ -267,39 +305,71 @@ contract Proxy {
 
             addressList.length = 0;
         }
+        return true;
     }
 
     // TODO: Later we will make this as universal utility not only for erc20.
     // Below are erc20 methods
     // ERC20 transfer
-    function transfer(address _erc20, address _to, uint256 _value) public onlyOwner returns (bool success) {
+    function transfer(address _erc20, address _to, uint256 _value) public 
+        onlyOwner 
+        returns (bool success)
+    {
         StagTokenInterface erc20 = StagTokenInterface(_erc20);
         return erc20.transfer(_to, _value);
     }
 
     // ERC20 approve
-    function approve(address _erc20, address _spender, uint256 _value) public onlyOwner returns (bool success) {
+    function approve(address _erc20, address _spender, uint256 _value) public 
+        onlyOwner 
+        returns (bool success)
+    {
         StagTokenInterface erc20 = StagTokenInterface(_erc20);
         return erc20.approve(_spender, _value);
     }
 
-    function addApprover(bytes32 approver) public onlyOwner returns(bool) {
+    function addApprover(bytes32 approver) public 
+        onlyOwner
+        checkTimeLock
+        returns(bool)
+    {
         if (!approverSet[approver]) {
             approvers.push(approver);
             approverSet[approver] = true;
-        }
-    }
-
-    function removeApprover(bytes32 approver) public onlyOwner returns(bool) {
-        if (approverSet[approver]) {
-            approverSet[approver] = false;
-            
-            ArrayUtil.remove(approver, approvers);
+            lock += 24 hours;
             return true;
         }
     }
 
-    function transferDirectly(address _erc20, address _to, uint256 _value) public onlyOwner returns (uint256 id) {
+    function removeApprover(bytes32 approver) public 
+        onlyOwner
+        checkTimeLock
+        returns(bool)
+    {
+        if (approverSet[approver]) {
+            approverSet[approver] = false;
+            
+            ArrayUtil.remove(approver, approvers);
+            lock += 24 hours;
+            return true;
+        }
+    }
+
+    function setMinApprove(uint256 _minApprove) public 
+        onlyOwner
+        minApproveLimit(_minApprove) 
+        checkTimeLock 
+        returns(bool)
+    {
+        minApprove = _minApprove;
+        lock += 24 hours;
+        return true;
+    }
+
+    function transferDirectly(address _erc20, address _to, uint256 _value) public
+        onlyOwner 
+        returns (uint256 id)
+    {
         proposalId++;
         proposals[proposalId] = Proposal({
             category: Category.Transfer,
@@ -314,7 +384,10 @@ contract Proxy {
         return proposalId;
     }
 
-    function approveDirectly(address _erc20, address _spender, uint256 _value) public onlyOwner returns (uint256 id) {
+    function approveDirectly(address _erc20, address _spender, uint256 _value) public 
+        onlyOwner 
+        returns (uint256 id)
+    {
         proposalId++;
         proposals[proposalId] = Proposal({
             category: Category.Allowance,
@@ -329,7 +402,9 @@ contract Proxy {
         return proposalId;
     }
 
-    function approve(uint256 id) public {
+    function approve(uint256 id) public
+        returns (bool)
+    {
         // Only approver
         bytes32 approver = keccak256(msg.sender);
         require(approverSet[approver]);
@@ -366,5 +441,6 @@ contract Proxy {
                 }
             }
         }
+        return true;
     }
 }
