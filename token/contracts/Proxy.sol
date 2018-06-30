@@ -186,6 +186,7 @@ contract Proxy {
     uint256 public minApprove;
     // Time lock
     uint256 public lock;
+    uint256 public approveLock;
     string public salt;
     uint256 public lastOwnerAction;
     address public beneficiary;
@@ -224,7 +225,12 @@ contract Proxy {
     modifier checkTimeLock() {
         require(now > lock);
         _;
-    }    
+    }
+
+    modifier checkApproveTimeLock() {
+        require(now > approveLock);
+        _;
+    }        
 
     function Proxy(uint256 _threshold, uint256 _minApprove, bytes32[] _friends, bytes32[] _approvers, string _salt) 
         public 
@@ -292,7 +298,7 @@ contract Proxy {
         returns(bool)
     {
         threshold = _threshold;
-        lock += 24 hours;
+        lock += 7 days;
         lastOwnerAction = now;
         return true;
     }
@@ -358,21 +364,21 @@ contract Proxy {
 
     function addApprover(bytes32 approver) public 
         onlyOwner
-        checkTimeLock
+        checkApproveTimeLock
         returns(bool)
     {
         lastOwnerAction = now;
         if (!approverSet[approver]) {
             approvers.push(approver);
             approverSet[approver] = true;
-            lock += 24 hours;
+            approveLock += 7 days;
             return true;
         }
     }
 
     function removeApprover(bytes32 approver) public 
         onlyOwner
-        checkTimeLock
+        checkApproveTimeLock  
         returns(bool)
     {
         lastOwnerAction = now;
@@ -380,7 +386,7 @@ contract Proxy {
             approverSet[approver] = false;
             
             ArrayUtil.remove(approver, approvers);
-            lock += 24 hours;
+            approveLock += 7 days;
             return true;
         }
     }
@@ -388,16 +394,17 @@ contract Proxy {
     function setMinApprove(uint256 _minApprove) public 
         onlyOwner
         minApproveLimit(_minApprove) 
-        checkTimeLock 
+        checkApproveTimeLock 
         returns(bool)
     {
         minApprove = _minApprove;
-        lock += 24 hours;
+        approveLock += 7 days;
         return true;
     }
 
     function transferDirectly(address _erc20, address _to, uint256 _value) public
-        onlyOwner 
+        onlyOwner
+        checkApproveTimeLock
         returns (uint256 id)
     {
         lastOwnerAction = now;
@@ -416,7 +423,8 @@ contract Proxy {
     }
 
     function approveDirectly(address _erc20, address _spender, uint256 _value) public 
-        onlyOwner 
+        onlyOwner
+        checkApproveTimeLock
         returns (uint256 id)
     {
         lastOwnerAction = now;
@@ -435,6 +443,7 @@ contract Proxy {
     }
 
     function approve(uint256 id) public
+        checkApproveTimeLock
         returns (bool)
     {
         // Only approver
