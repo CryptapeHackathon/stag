@@ -74,8 +74,7 @@ contract SecurityPolicy {
         for (uint256 i = 0; i <= j; i++) {
             if (records[i].timestamp < begin) {
                 while (records[j].timestamp < begin) {
-                    j -= 1;
-                    if (i == j) { break; }
+                    if (i == --j) { break; }
                 }
                 if (i == j) { break; }
                 records[i] = records[j];
