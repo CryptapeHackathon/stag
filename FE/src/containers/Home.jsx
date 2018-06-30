@@ -195,13 +195,13 @@ class Friend extends Component {
       friendlist: [],
       nametable,
       adding: false,
-      owner: ''
+      owner: '',
     }
     this.addinput = createRef()
     this.fetchFriendlist()
     fetchOwner().then(res => {
       this.setState({
-        owner: res
+        owner: res,
       })
     })
   }
@@ -210,16 +210,26 @@ class Friend extends Component {
     // log('md')
   }
 
+  fetchlocallist = () => {
+    let list = localStorage.getItem('friendlist')
+    list = JSON.parse(list)
+    return list
+  }
+
   fetchFriendlist = () => {
     fetchFriend().then(list => {
-      log(list)
-      list = localStorage.getItem('friendlist')
-      list = JSON.parse(list)
-      // log(list)
+      if (list.length === 0) {
+        list = this.fetchlocallist()
+      }
       this.setState({
         friendlist: list,
       })
-      // log(this.state.friendlist)
+    }).catch(err => {
+      list = this.fetchlocallist()
+      this.setState({
+        friendlist: list,
+      })
+
     })
   }
 
@@ -241,6 +251,7 @@ class Friend extends Component {
         nametable,
       })
     } catch (err) {
+      log(err)
     }
   }
 
@@ -253,15 +264,18 @@ class Friend extends Component {
   }
 
   removeFriend = (address) => () => {
+    const friendlist = this.state.friendlist
     removeFriend(address).then(address => {
-      // log(address)
-      const friendlist = this.state.friendlist
+      this.fetchFriendlist()
+      this.removeFriendName(address)
+    }).catch(err => {
       const i = friendlist.findIndex(e => e === address)
       friendlist.splice(i, 1)
       this.setState({
-        friendlist
+        friendlist,
       })
-      // log(i, friendlist)
+      localStorage.setItem('friendlist', JSON.stringify(friendlist))
+      this.removeFriendName(address)
     })
   }
 
@@ -310,12 +324,8 @@ class Friend extends Component {
       return
     }
     addFriend(address).then((address) => {
-      friendlist.push(address)
-      log(friendlist)
-      this.setState({
-        friendlist,
-      })
-    }).catch((err) => {
+      this.fetchFriendlist()
+    }).catch(err => {
       friendlist.push(address)
       log(err)
       this.setState({
@@ -336,7 +346,9 @@ class Friend extends Component {
     if (!checkAddress(address)) {
       return
     }
-    addFriend(address)
+    if (!this.state.friendlist.includes(address)) {
+      this.addFriend(address)
+    }
     this.setState({
       adding: false,
     })
