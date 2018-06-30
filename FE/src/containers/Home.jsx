@@ -7,6 +7,7 @@ import {
 } from '../utils/chain'
 import log from '../utils/log'
 import '../style/home.scss'
+import '../style/animation.scss'
 import backimg from '../img/backimg.jpg'
 
 const checkAddress = (address) => {
@@ -218,6 +219,7 @@ class Friend extends Component {
 
   fetchFriendlist = () => {
     fetchFriend().then(list => {
+      log(list)
       if (list.length === 0) {
         list = this.fetchlocallist()
       }
@@ -504,16 +506,43 @@ class Recover extends Component {
   }
 }
 
-const main = () => {
-  return (
-    <div id="id-home">
-      <div className="mainbackimg">
-        <img src={backimg} alt=""/>
-      </div>
-      <Friend/>
-      {/*<Recover/>*/}
-    </div>
-  )
-}
+class Main extends Component {
+  constructor(props) {
+    super()
+    let coversize = 0
+    this.state = {
+      render: false,
+      coverclass: 'cover3',
+      coversize,
+    }
 
-export default main
+    // const interval = setInterval(() => {
+    //   coversize += 10 / 100
+    //   this.setState({
+    //     coversize
+    //   })
+    // })
+    // setTimeout(() => {
+    //   this.setState({
+    //     coverclass: 'cover1'
+    //   })
+    //   clearInterval(interval)
+    // }, 1000)
+  }
+
+  render() {
+    return (
+      <div id="id-home">
+        <div className="mainbackimg">
+          <img src={backimg} alt=""/>
+        </div>
+        <Friend/>
+        <Recover/>
+        {/*<div className={this.state.coverclass} style={{*/}
+          {/*backgroundImage: `radial-gradient(closest-side, transparent 0%, #000 ${this.state.coversize}vw)`*/}
+        {/*}}/>*/}
+      </div>
+    )
+  }
+}
+export default Main

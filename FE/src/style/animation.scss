@@ -1,0 +1,17 @@
+.cover3 {
+  width: 100vw;
+  height: 100vh;
+  background-image: radial-gradient(closest-side, transparent 0%, #000 0%);
+  position: fixed;
+  transition: all 3s;
+  top: 0;
+  left: 0;
+}
+
+.cover2 {
+  background-image: radial-gradient(closest-side, transparent 0%, #000 100%);
+}
+
+.cover1 {
+  display: none;
+}
