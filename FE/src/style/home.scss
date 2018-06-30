@@ -14,7 +14,7 @@
   box-shadow: 0 5px 17.28px 0.72px hsla(0, 0%, 57%, .21);
   margin: 50px auto 72px;
   .friendlist {
-    display: flex;
+    //display: flex;
     flex-direction: column;
     height: 800px;
     width: 600px;
@@ -27,6 +27,7 @@
       font-weight: 500;
     }
     .add {
+      position: relative;
       display: inline-flex;
       justify-content: center;
       align-items: center;

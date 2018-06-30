@@ -198,11 +198,19 @@ class Friend extends Component {
     this.fetchFriendlist()
   }
 
+  componentDidMount() {
+    log('md')
+  }
+
   fetchFriendlist = () => {
     fetchFriend().then(list => {
-      this.state = {
+      list = localStorage.getItem('friendlist')
+      list = JSON.parse(list)
+      log(list)
+      this.setState({
         friendlist: list,
-      }
+      })
+      log(this.state.friendlist)
     })
   }
 
@@ -339,6 +347,7 @@ class Friend extends Component {
 
   friendlist = (props) => {
     const {nametable} = this.state
+    log(this.state.friendlist)
     return (
       <div className="friendlist" id="id-friendlist">
         <div className="friendcell frinedlistTitle">
