@@ -13,8 +13,14 @@ jobs:
           name: Install Truffle
           command: 'npm  -g install truffle@v4.0.6'
       - run:
+          name: Install Ganache-cli
+          command: 'npm  -g install ganache-cli@6.1.4'
+      - run:
           name: Truffle Compile
           command: 'cd token && truffle compile'
+      - run:
+          name: Truffle Test
+          command: 'bash .circleci/ci.sh'
   analysis:
     docker:
       - image: luongnguyen/oyente:latest
@@ -23,16 +29,13 @@ jobs:
       - checkout
       - run:
           name: Analyse Token Contract
-          command: 'cd /oyente/oyente && python oyente.py -s ~/repo/token/contracts/Token.sol'
+          command: 'cd /oyente/oyente && python oyente.py -s ~/repo/token/contracts/StagToken.sol'
       - run:
           name: Analyse Proxy Contract
           command: 'cd /oyente/oyente && python oyente.py -s ~/repo/token/contracts/Proxy.sol'
-
 workflows:
   version: 2
   build-and-test:
     jobs:
       - build
-      - analysis:
-          requires:
-            - build
+      - analysis

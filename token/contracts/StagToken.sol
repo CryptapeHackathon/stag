@@ -7,11 +7,11 @@ pragma solidity ^0.4.19;
 // -------------------------------------------------------------------------
 
 import "./SafeMath.sol";
-import "./EIP20Interface.sol";
+import "./StagTokenInterface.sol";
 import "./Owned.sol";
 import "./SecurityPolicy.sol";
 
-contract StagToken is Owned, EIP20Interface, SecurityPolicy {
+contract StagToken is Owned, StagTokenInterface, SecurityPolicy {
 
     using SafeMath for uint256;
 

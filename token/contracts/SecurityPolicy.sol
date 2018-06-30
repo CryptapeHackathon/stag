@@ -45,10 +45,14 @@ contract SecurityPolicy {
 
     modifier checkPolicy(address _sender, uint256 _value) {
         PeriodicPolicy storage policy = policies[_sender];
-        if (policy.amount == 0 && policy.count == 0 && policy.interval == 0) {
-                policy.amount = defaultAmount;
-                policy.count = defaultCount;
-                policy.interval = defaultInterval;
+        if (policy.amount == 0) {
+            policy.amount = defaultAmount;
+        }
+        if (policy.count == 0) {
+            policy.count = defaultCount;
+        }
+        if (policy.interval == 0) {
+            policy.interval = defaultInterval;
         }
         uint256 begin = now.sub(policy.interval);
         uint256 amount;
@@ -86,8 +90,7 @@ contract SecurityPolicy {
     function addRecord(address _sender, uint256 _value) private {
         TransferRecord[] storage records = allRecords[_sender];
         require(records.length <= maxRecordsCount);
-        records[records.length].amount = _value;
-        records[records.length].timestamp = now;
+        records.push(TransferRecord(_value, now));
     }
 
     function lastRecordTimestamp(address _sender) view public returns(uint timestamp) {

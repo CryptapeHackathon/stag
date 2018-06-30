@@ -1,6 +1,13 @@
 pragma solidity ^0.4.19;
+
+// -------------------------------------------------------------------------
+// Proxy
+//
+// Copyright (c) 2018 CryptapeHackathon. The MIT Licence.
+// -------------------------------------------------------------------------
+
 import "./SafeMath.sol";
-import "./EIP20Interface.sol";
+import "./StagTokenInterface.sol";
 
 library ArrayUtil {
 
@@ -163,6 +170,7 @@ contract Proxy {
     using SafeMath for uint256;
 
     address public owner;
+    // For recover
     bytes32[] public friends;
     // Sha3(address) for safety
     mapping(bytes32 => bool) public friendSet;
@@ -170,6 +178,33 @@ contract Proxy {
     mapping(bytes32 => address) public recoverSet;
     mapping(address => uint256) public addressSet;
     address[] public addressList;
+
+    // For transferDirectly and approveDirectly
+    bytes32[] public approvers;
+    // Sha3(address) for safety
+    mapping(bytes32 => bool) public approverSet;
+    uint256 public minApprove;
+    // Time lock
+    uint256 public lock;
+    string public salt;
+    uint256 public lastOwnerAction;
+    address public beneficiary;
+
+    enum Category { Transfer, Allowance }
+    enum Status { Pending, Finish, Failed }
+
+    struct Proposal {
+        Category category;
+        address contractAddress;
+        address beneficiary;
+        uint256 value;
+        Status status;
+        bytes32[] approvers;
+        uint256 minApprove;
+    }
+
+    uint256 public proposalId;
+    mapping(uint256 => Proposal) public proposals;
 
     modifier onlyOwner {
         require(msg.sender == owner);
@@ -181,36 +216,97 @@ contract Proxy {
         _;
     }
 
-    function Proxy(uint256 _threshold) public thresholdLimit(_threshold) {
-        owner = msg.sender;
-        threshold = _threshold;
+    modifier minApproveLimit(uint _threshold) {
+        require(_threshold >= 2);
+        _;
     }
 
-    function addFriend(bytes32 friend) public onlyOwner returns(bool) {
+    modifier checkTimeLock() {
+        require(now > lock);
+        _;
+    }    
+
+    function Proxy(uint256 _threshold, uint256 _minApprove, bytes32[] _friends, bytes32[] _approvers, string _salt) 
+        public 
+        thresholdLimit(_threshold)
+        minApproveLimit(_minApprove)
+    {
+        owner = msg.sender;
+        threshold = _threshold;
+        minApprove = _minApprove;
+        friends = _friends;
+        approvers = _approvers;
+        salt = _salt;
+        lastOwnerAction = now;
+    }
+
+    function setBeneficiary(address _beneficiary) public
+        onlyOwner
+        returns(bool)
+    {
+        beneficiary = _beneficiary;
+        lastOwnerAction = now;
+        return true;
+    }
+
+    function friendsList() public
+        view
+        returns(bytes32[])
+    {
+        return friends;        
+    }
+
+    function addFriend(bytes32 friend) public
+        onlyOwner
+        checkTimeLock
+        returns(bool)
+    {
+        lastOwnerAction = now;
         if (!friendSet[friend]) {
             friends.push(friend);
             friendSet[friend] = true;
-        }
-    }
-
-    function removeFriend(bytes32 friend) public onlyOwner returns(bool) {
-        if (friendSet[friend]) {
-            friendSet[friend] = false;
-            
-            ArrayUtil.remove(friend, friends);
+            lock += 24 hours;
             return true;
         }
     }
 
-    function setThreshold(uint256 _threshold) public onlyOwner thresholdLimit(_threshold) returns(bool) {
+    function removeFriend(bytes32 friend) public
+        onlyOwner
+        checkTimeLock
+        returns(bool)
+    {
+        lastOwnerAction = now;
+        if (friendSet[friend]) {
+            friendSet[friend] = false;
+            
+            ArrayUtil.remove(friend, friends);
+            lock += 24 hours;
+            return true;
+        }
+    }
+
+    function setThreshold(uint256 _threshold) public 
+        onlyOwner
+        thresholdLimit(_threshold)
+        checkTimeLock
+        returns(bool)
+    {
         threshold = _threshold;
+        lock += 24 hours;
+        lastOwnerAction = now;
+        return true;
     }
  
-    function recover(address newAddress) public returns(bool) {
-        require(owner != newAddress);
-        bytes32 friend = keccak256(msg.sender);
-        address oldAddress = recoverSet[friend];
+    function recover(address newAddress) public 
+        returns(bool)
+    {
+        // Only friend
+        bytes32 friend = keccak256(msg.sender, salt);
         require(friendSet[friend]);
+
+        require(owner != newAddress);
+
+        address oldAddress = recoverSet[friend];
         if (recoverSet[friend] != newAddress && addressSet[oldAddress] > 0) {
             addressSet[oldAddress] = addressSet[oldAddress].sub(1);
             recoverSet[friend] = newAddress;
@@ -235,25 +331,154 @@ contract Proxy {
 
             addressList.length = 0;
         }
+        return true;
     }
 
     // TODO: Later we will make this as universal utility not only for erc20.
     // Below are erc20 methods
     // ERC20 transfer
-    function transfer(address _erc20, address _to, uint256 _value) public returns (bool success) {
-        EIP20Interface erc20 = EIP20Interface(_erc20);
+    function transfer(address _erc20, address _to, uint256 _value) public 
+        onlyOwner 
+        returns (bool success)
+    {
+        lastOwnerAction = now;
+        StagTokenInterface erc20 = StagTokenInterface(_erc20);
         return erc20.transfer(_to, _value);
     }
 
-    // ERC20 transferFrom
-    function transferFrom(address _erc20, address _from, address _to, uint256 _value) public returns (bool success) {
-        EIP20Interface erc20 = EIP20Interface(_erc20);
-        return erc20.transferFrom(_from, _to, _value);
+    // ERC20 approve
+    function approve(address _erc20, address _spender, uint256 _value) public 
+        onlyOwner 
+        returns (bool success)
+    {
+        lastOwnerAction = now;
+        StagTokenInterface erc20 = StagTokenInterface(_erc20);
+        return erc20.approve(_spender, _value);
     }
 
-    // ERC20 approve
-    function approve(address _erc20, address _spender, uint256 _value) public returns (bool success) {
-        EIP20Interface erc20 = EIP20Interface(_erc20);
-        return erc20.approve(_spender, _value);
+    function addApprover(bytes32 approver) public 
+        onlyOwner
+        checkTimeLock
+        returns(bool)
+    {
+        lastOwnerAction = now;
+        if (!approverSet[approver]) {
+            approvers.push(approver);
+            approverSet[approver] = true;
+            lock += 24 hours;
+            return true;
+        }
+    }
+
+    function removeApprover(bytes32 approver) public 
+        onlyOwner
+        checkTimeLock
+        returns(bool)
+    {
+        lastOwnerAction = now;
+        if (approverSet[approver]) {
+            approverSet[approver] = false;
+            
+            ArrayUtil.remove(approver, approvers);
+            lock += 24 hours;
+            return true;
+        }
+    }
+
+    function setMinApprove(uint256 _minApprove) public 
+        onlyOwner
+        minApproveLimit(_minApprove) 
+        checkTimeLock 
+        returns(bool)
+    {
+        minApprove = _minApprove;
+        lock += 24 hours;
+        return true;
+    }
+
+    function transferDirectly(address _erc20, address _to, uint256 _value) public
+        onlyOwner 
+        returns (uint256 id)
+    {
+        lastOwnerAction = now;
+        proposalId++;
+        proposals[proposalId] = Proposal({
+            category: Category.Transfer,
+            contractAddress: _erc20,
+            beneficiary: _to,
+            value: _value,
+            status: Status.Pending,
+            approvers: new bytes32[](0),
+            minApprove: minApprove
+        });
+        
+        return proposalId;
+    }
+
+    function approveDirectly(address _erc20, address _spender, uint256 _value) public 
+        onlyOwner 
+        returns (uint256 id)
+    {
+        lastOwnerAction = now;
+        proposalId++;
+        proposals[proposalId] = Proposal({
+            category: Category.Allowance,
+            contractAddress: _erc20,
+            beneficiary: _spender,
+            value: _value,
+            status: Status.Pending,
+            approvers: new bytes32[](0),
+            minApprove: minApprove
+        });
+        
+        return proposalId;
+    }
+
+    function approve(uint256 id) public
+        returns (bool)
+    {
+        // Only approver
+        bytes32 approver = keccak256(msg.sender, salt);
+        require(approverSet[approver]);
+        
+        Proposal storage proposal = proposals[id];
+        // Only Pending proposal
+        require(proposal.status == Status.Pending);
+        bool isExist;
+        bytes32[] storage proposalApprovers = proposal.approvers;
+        for (uint i = 0; i < approvers.length; i++) {
+            if (proposalApprovers[i] == approver) {
+                isExist = true;
+                break;
+            }
+        }
+
+        if (isExist) {
+            proposalApprovers.push(approver);
+        }
+
+        if (proposalApprovers.length >= proposal.minApprove) {
+            StagTokenInterface erc20 = StagTokenInterface(proposal.contractAddress);
+            if (proposal.category == Category.Transfer) {
+                if (erc20.transferDirectly(proposal.beneficiary, proposal.value)) {
+                    proposal.status = Status.Finish;
+                } else {
+                    proposal.status = Status.Failed;
+                }
+            } else {
+                if (erc20.approveDirectly(proposal.beneficiary, proposal.value)) {
+                    proposal.status = Status.Finish;
+                } else {
+                    proposal.status = Status.Failed;
+                }
+            }
+        }
+        return true;
+    }
+
+    function transferOwnership() public returns (bool) {
+        require(now > lastOwnerAction + 5 years);
+        require(beneficiary == msg.sender);
+        owner = msg.sender;
     }
 }
