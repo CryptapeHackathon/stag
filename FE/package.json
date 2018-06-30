@@ -1,0 +1,40 @@
+{
+  "scripts": {
+    "start": "webpack-dev-server --config config/webpack.config.dev.js",
+    "build": "rimraf public && webpack -p --config config/webpack.config.prod.js"
+  },
+  "dependencies": {
+    "@nervos/web3": "^0.17.12",
+    "autoprefixer": "^7.2.5",
+    "axios": "^0.16.2",
+    "babel-polyfill": "^6.26.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-loader": "^7.1.2",
+    "babel-preset-env": "^1.6.0",
+    "babel-preset-es2015": "^6.24.1",
+    "babel-preset-react": "^6.24.1",
+    "babel-preset-stage-2": "^6.24.1",
+    "bundle-loader": "^0.5.6",
+    "css-loader": "^0.28.5",
+    "extract-text-webpack-plugin": "^3.0.0",
+    "file-loader": "^0.11.2",
+    "html-webpack-plugin": "^2.30.1",
+    "node-sass": "^4.5.3",
+    "postcss-loader": "^2.0.6",
+    "react": "^16.3.2",
+    "react-dom": "^16.3.2",
+    "react-router": "^4.2.0",
+    "react-router-dom": "^4.2.2",
+    "resolve-url-loader": "^2.1.0",
+    "sass-loader": "^6.0.6",
+    "solc": "^0.4.24",
+    "style-loader": "^0.18.2",
+    "uglifyjs-webpack-plugin": "^0.4.6",
+    "url-loader": "^0.5.9",
+    "webpack": "^3.5.5",
+    "webpack-dev-server": "^2.7.1",
+    "webpack-merge": "^4.1.0"
+  }
+}

@@ -1,0 +1,44 @@
+//
+//@font-face {
+//  font-family: 'bold';
+//  src: url('./font/NotoSansHans-Regular.otf');
+//}
+//
+//@font-face {
+//  font-family: 'regular';
+//  src: url('./font/NotoSansHans-Light.otf');
+//}
+
+html {
+  margin: 0;
+  color: #333;
+  font-size: 16px;
+  font-family: "regular", "SourceHanSansCN", "Microsoft YaHei", "微软雅黑", 'STXihei', "华文细黑", 'sans-serif';
+  font-weight: 300;
+}
+
+body {
+  margin: 0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.container {
+  width: 80%;
+  max-width: 1080px;
+  margin: auto;
+}
+
+.hide {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
