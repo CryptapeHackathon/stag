@@ -18,9 +18,6 @@ const readDir = (dir) => {
 
 const readFile = (name) => {
   const sorce = fs.readFileSync(name, {encoding: 'utf-8'})
-  // log(sorce)
-  const calc = web3.eth.compile.solidity(sorce).contract
-  // log(calc)
   for (let name in calc) {
     // code and ABI that are needed by web3
     // console.log(contractName + ': ' + compiledContract.contracts[contractName].bytecode);
@@ -47,7 +44,7 @@ const dirOrFile = (root, paths) => {
 }
 
 const main = () => {
-  const dir = '../token/contracts'
+  const dir = './abi'
   readDir(dir)
 }
 

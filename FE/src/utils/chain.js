@@ -1,21 +1,30 @@
 import NervosWeb3 from '@nervos/web3'
 import Web3 from 'web3'
-log(Web3)
 import axios from 'axios'
 const {chain, proxy, token} = require('../config/chaininfo')
-log(NervosWeb3.default)
+import proxyAbi from '../config/abi/proxy'
+import tokenAbi from '../config/abi/token'
 import log from './log'
-// const NervosWeb3 = require('@nervos/web3')
 const web3 = NervosWeb3(chain)
 const web2 = new Web3(chain)
-log(web3)
-// web3.eth.getBlockNumber().then(res => {
-//   console.log(res)
-// })
+const proxyC = new web3.eth.Contract(proxyAbi, '0x10bdd1684100bbce6c17e97db9a3779a000b350b')
+const tokenC = new web3.eth.Contract(tokenAbi, '0x10bdd1684100bbce6c17e97db9a3779a000b350b')
 
-web3.eth.call(proxy).then(res => console.log('call', res))
-web3.eth.call('0x0').then(res => console.log('0x0', res))
+const addFriend = (address) => {
+  return proxyC.methods.addFriend(web3.utils.keccak256(address)).call()
+}
 
-axios.post(chain, '{"jsonrpc":"2.0","method":"call","params":[{"from":"0xca35b7d915458ef540ade6068dfe2f44e8fa733c","to":"0xea4f6bc98b456ef085da5c424db710489848cab5","data":"0x6d4ce63c"}, "0x6"],"id":2}').then(res => log('axio', res))
+const removeFriend = (address) => {
+  return proxyC.methods.removeFriend(web3.utils.keccak256(address)).call()
+}
 
-export default ''
+const fetchFriend = () => {
+  return proxyC.methods.friendsList().call()
+}
+
+
+export {
+  addFriend,
+  removeFriend,
+  fetchFriend,
+}

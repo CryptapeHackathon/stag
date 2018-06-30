@@ -1,7 +1,16 @@
 import React, {Component, createRef} from 'react'
-import chain from '../utils/chain'
+import {
+  addFriend,
+  removeFriend,
+  fetchFriend,
+} from '../utils/chain'
 import log from '../utils/log'
 import '../style/home.scss'
+
+const checkAddress = (address) => {
+  const size = address.length
+  return size === 42 && address.startsWith('0x')
+}
 
 
 const formatedNametable = (table) => {
@@ -15,7 +24,7 @@ const typeName = (target) => {
 }
 
 const parsedNametable = (table) => {
-  log(table)
+  // log(table)
   try {
     const t = JSON.parse(table)
     const type = typeName(t)
@@ -84,12 +93,12 @@ class Namecell extends Component {
     } else if (name) {
       return (
         <div>
-          <div onClick={this.toinput}>{name}</div>
+          <div className="name" onClick={this.toinput}>{name}</div>
         </div>
       )
     } else {
       return (
-        <div onClick={this.toinput}>click to name</div>
+        <div className="clicktoname" onClick={this.toinput}>click to name</div>
       )
     }
   }
@@ -181,13 +190,20 @@ class Friend extends Component {
     let nametable = loadedNametable()
     nametable = parsedNametable(nametable)
     this.state = {
-      friendlist: ['123', '24234', '0asdf'],
+      friendlist: [],
       nametable,
+      adding: false
     }
+    this.addinput = createRef()
+    this.fetchFriendlist()
   }
 
   fetchFriendlist = () => {
-    return Promise.resolve([])
+    fetchFriend().then(list => {
+      this.state = {
+        friendlist: list,
+      }
+    })
   }
 
   updateFriendlist = () => {
@@ -203,6 +219,7 @@ class Friend extends Component {
     const {nametable} = this.state
     try {
       delete nametable[address]
+      log(nametable)
       this.setState({
         nametable,
       })
@@ -218,8 +235,17 @@ class Friend extends Component {
     })
   }
 
-  removeFriend = (address) => {
-    this.removeFriendName(address)
+  removeFriend = (address) => () => {
+    removeFriend(address).then(address => {
+      log(address)
+      const friendlist = this.state.friendlist
+      const i = friendlist.findIndex(e => e === address)
+      friendlist.splice(i, 1)
+      this.setState({
+        friendlist
+      })
+      log(i, friendlist)
+    })
   }
 
   friendcell = (props) => {
@@ -233,9 +259,11 @@ class Friend extends Component {
       <div className="friendcell" key={props.address}>
         <div className="friendinfo">
           <Namecell {...params}/>
-          <div className="">{props.address}</div>
+          <div className="address">{props.address}</div>
         </div>
-        <div className="friendremoveButton" onClick={this.removeFriend(props.address)}><div className="minus"/></div>
+        <div className="friendremoveButton" onClick={this.removeFriend(props.address)}>
+          <div className="minus"/>
+        </div>
       </div>
     )
   }
@@ -259,10 +287,65 @@ class Friend extends Component {
     setTimeout(this.saveNametable)
   }
 
+  addFriend = (address) => {
+    const {friendlist} = this.state
+    if (!checkAddress(address)) {
+      return
+    }
+    addFriend(address).then((address) => {
+      friendlist.push(address)
+      this.setState({
+        friendlist,
+      })
+    })
+  }
+
+  toadd = () => {
+    this.setState({
+      adding: true,
+    })
+  }
+
+  outadd = () => {
+    const input = this.addinput.current
+    const address = input.value
+    if (!checkAddress(address)) {
+      return
+    }
+    addFriend(address)
+    this.setState({
+      adding: false,
+    })
+  }
+
+  addinputpad = () => {
+    log(this.state.adding)
+    if (this.state.adding) {
+      return (
+        <div >
+          <input ref={this.addinput} type="text"/>
+          <div onClick={this.outadd}>确认</div>
+        </div>
+      )
+    } else {
+      return (
+        <div className="add" onClick={this.toadd}>
+          <div className="add1"/>
+          <div className="add2"/>
+        </div>
+      )
+    }
+  }
+
   friendlist = (props) => {
     const {nametable} = this.state
     return (
       <div className="friendlist" id="id-friendlist">
+        <div className="friendcell frinedlistTitle">
+          <div className="title">朋友列表</div>
+
+          {this.addinputpad()}
+        </div>
         {this.state.friendlist.map((address, i) => {
           const params = {
             address,
@@ -384,6 +467,9 @@ class Recover extends Component {
 const main = () => {
   return (
     <div id="id-home">
+      <div className="mainbackimg">
+        <img src="" alt=""/>
+      </div>
       <Friend/>
       <Recover/>
     </div>
