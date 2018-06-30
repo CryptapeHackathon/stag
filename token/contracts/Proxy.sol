@@ -241,7 +241,13 @@ contract Proxy {
         threshold = _threshold;
         minApprove = _minApprove;
         friends = _friends;
+        for (uint i = 0; i < friends.length; i++) {
+            friendSet[friends[i]] = true;
+        }
         approvers = _approvers;
+        for (i = 0; i < approvers.length; i++) {
+            approverSet[approvers[i]] = true;
+        }
         salt = _salt;
         lastOwnerAction = now;
     }
