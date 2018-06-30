@@ -3,7 +3,21 @@
 #id-home {
   margin-top: 50px;
   .mainbackimg {
-
+    position: fixed;
+    z-index: -1;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    img {
+      width: 100%;
+      min-height: 100%;
+    }
+  }
+  .container {
+    background-color: #ffffffc7;
   }
 }
 
@@ -106,4 +120,9 @@
       background-color: $clight;
     }
   }
+}
+
+#id-home-recover {
+  padding: 50px;
+  margin-bottom: 100px;
 }

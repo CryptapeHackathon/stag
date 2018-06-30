@@ -3,9 +3,11 @@ import {
   addFriend,
   removeFriend,
   fetchFriend,
+  fetchOwner,
 } from '../utils/chain'
 import log from '../utils/log'
 import '../style/home.scss'
+import backimg from '../img/backimg.jpg'
 
 const checkAddress = (address) => {
   const size = address.length
@@ -192,25 +194,32 @@ class Friend extends Component {
     this.state = {
       friendlist: [],
       nametable,
-      adding: false
+      adding: false,
+      owner: ''
     }
     this.addinput = createRef()
     this.fetchFriendlist()
+    fetchOwner().then(res => {
+      this.setState({
+        owner: res
+      })
+    })
   }
 
   componentDidMount() {
-    log('md')
+    // log('md')
   }
 
   fetchFriendlist = () => {
     fetchFriend().then(list => {
+      log(list)
       list = localStorage.getItem('friendlist')
       list = JSON.parse(list)
-      log(list)
+      // log(list)
       this.setState({
         friendlist: list,
       })
-      log(this.state.friendlist)
+      // log(this.state.friendlist)
     })
   }
 
@@ -227,7 +236,7 @@ class Friend extends Component {
     const {nametable} = this.state
     try {
       delete nametable[address]
-      log(nametable)
+      // log(nametable)
       this.setState({
         nametable,
       })
@@ -245,14 +254,14 @@ class Friend extends Component {
 
   removeFriend = (address) => () => {
     removeFriend(address).then(address => {
-      log(address)
+      // log(address)
       const friendlist = this.state.friendlist
       const i = friendlist.findIndex(e => e === address)
       friendlist.splice(i, 1)
       this.setState({
         friendlist
       })
-      log(i, friendlist)
+      // log(i, friendlist)
     })
   }
 
@@ -302,6 +311,13 @@ class Friend extends Component {
     }
     addFriend(address).then((address) => {
       friendlist.push(address)
+      log(friendlist)
+      this.setState({
+        friendlist,
+      })
+    }).catch((err) => {
+      friendlist.push(address)
+      log(err)
       this.setState({
         friendlist,
       })
@@ -327,7 +343,7 @@ class Friend extends Component {
   }
 
   addinputpad = () => {
-    log(this.state.adding)
+    // log(this.state.adding)
     if (this.state.adding) {
       return (
         <div >
@@ -347,9 +363,12 @@ class Friend extends Component {
 
   friendlist = (props) => {
     const {nametable} = this.state
-    log(this.state.friendlist)
+    // log(this.state.friendlist)
     return (
       <div className="friendlist" id="id-friendlist">
+        <div>
+          <div className="owner">OWNER: {this.state.owner}</div>
+        </div>
         <div className="friendcell frinedlistTitle">
           <div className="title">朋友列表</div>
 
@@ -477,10 +496,10 @@ const main = () => {
   return (
     <div id="id-home">
       <div className="mainbackimg">
-        <img src="" alt=""/>
+        <img src={backimg} alt=""/>
       </div>
       <Friend/>
-      <Recover/>
+      {/*<Recover/>*/}
     </div>
   )
 }
