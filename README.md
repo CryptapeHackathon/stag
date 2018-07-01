@@ -11,7 +11,7 @@ This project is for providing account safety mechanism for cryptocurrency, in th
 
 ## Services
 
-* Retrieve your digital asset
+* Retrieve your digital asset by your friends
 * Daily transfer ceiling
 * Account can be inherited by a designated beneficiary
 
@@ -45,4 +45,4 @@ cd token && truffle test
 
 ## Contributing
 
-Any contribution is welcome.
+I will be very appreciated for any feedback or contributions.
