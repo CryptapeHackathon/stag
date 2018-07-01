@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.24;
 
 // -------------------------------------------------------------------------
 // StagToken
@@ -25,13 +25,13 @@ contract StagToken is Owned, StagTokenInterface, SecurityPolicy {
     event Transfer(address indexed _from, address indexed _to, uint256 _value);
     event Approval(address indexed _owner, address indexed _spender, uint256 _value);
 
-    function StagToken() public {
+    constructor() public {
         _symbol = "STG";
         _name = "Stag Token for CryptapeHackathon";
         _decimals = 18;
         _totalSupply = 100000000 * 10 ** uint256(_decimals);
         balances[owner] = _totalSupply;
-        Transfer(address(0), owner, _totalSupply);
+        emit Transfer(address(0), owner, _totalSupply);
     }
 
     function name() view public returns (string) {
@@ -57,7 +57,7 @@ contract StagToken is Owned, StagTokenInterface, SecurityPolicy {
     function transfer(address _to, uint256 _value) public checkPolicy(msg.sender, _value) returns (bool success) {
         balances[msg.sender] = balances[msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
-        Transfer(msg.sender, _to, _value);
+        emit Transfer(msg.sender, _to, _value);
         success = true;
     }
 
@@ -65,13 +65,13 @@ contract StagToken is Owned, StagTokenInterface, SecurityPolicy {
         balances[_from] = balances[_from].sub(_value);
         allowed[_from][msg.sender] = allowed[_from][msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
-        Transfer(_from, _to, _value);
+        emit Transfer(_from, _to, _value);
         success = true;
     }
 
     function approve(address _spender, uint256 _value) public checkPolicy(_spender, _value) returns (bool success) {
         allowed[msg.sender][_spender] = _value;
-        Approval(msg.sender, _spender, _value);
+        emit Approval(msg.sender, _spender, _value);
         success = true;
     }
 
@@ -86,13 +86,13 @@ contract StagToken is Owned, StagTokenInterface, SecurityPolicy {
     function transferDirectly(address _to, uint256 _value) public returns (bool success) {
         balances[msg.sender] = balances[msg.sender].sub(_value);
         balances[_to] = balances[_to].add(_value);
-        Transfer(msg.sender, _to, _value);
+        emit Transfer(msg.sender, _to, _value);
         success = true;
     }
 
     function approveDirectly(address _spender, uint256 _value) public returns (bool success) {
         allowed[msg.sender][_spender] = _value;
-        Approval(msg.sender, _spender, _value);
+        emit Approval(msg.sender, _spender, _value);
         success = true;
     }
 }

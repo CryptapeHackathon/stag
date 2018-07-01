@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.24;
 
 import "./SafeMath.sol";
 
@@ -30,7 +30,7 @@ contract SecurityPolicy {
     mapping(address => PeriodicPolicy) private policies;
     mapping(address => TransferRecord[]) private allRecords;
 
-    function SecurityPolicy() public {
+    constructor() public {
         defaultAmount = 1000;
         defaultCount = 10;
         defaultInterval = 86400;
@@ -74,9 +74,9 @@ contract SecurityPolicy {
         for (uint256 i = 0; i <= j; i++) {
             if (records[i].timestamp < begin) {
                 while (records[j].timestamp < begin) {
-                    if (i == --j) { break; }
+                    if (i == --j){break;}
                 }
-                if (i == j) { break; }
+                if (i == j){break;}
                 records[i] = records[j];
             }
             amount.add(records[i].amount);

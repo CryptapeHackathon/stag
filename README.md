@@ -27,13 +27,13 @@ This project is for providing account safety mechanism for cryptocurrency, in th
 
 ## Prerequisites
 
-* solc@v0.4.19
+* solc@v0.4.24
 * npm
-* truffle@v4.0.6
+* truffle@v4.1.13
 * ganache-cli@6.1.4
 
 ```shell
-npm install -g truffle@v4.0.6
+npm install -g truffle@v4.1.13
 npm install -g ganache-cli@6.1.4
 ```
 
@@ -41,7 +41,7 @@ npm install -g ganache-cli@6.1.4
 
 ```shell
 ganache-cli -l 1000000000
-truffle test
+cd token && truffle test
 ```
 
 ## Design

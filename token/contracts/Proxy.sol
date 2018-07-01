@@ -1,4 +1,4 @@
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.24;
 
 // -------------------------------------------------------------------------
 // Proxy
@@ -232,8 +232,8 @@ contract Proxy {
         _;
     }        
 
-    function Proxy(uint256 _threshold, uint256 _minApprove, bytes32[] _friends, bytes32[] _approvers, string _salt) 
-        public 
+    constructor(uint256 _threshold, uint256 _minApprove, bytes32[] _friends, bytes32[] _approvers, string _salt)
+        public
         thresholdLimit(_threshold)
         minApproveLimit(_minApprove)
     {
@@ -313,7 +313,7 @@ contract Proxy {
         returns(bool)
     {
         // Only friend
-        bytes32 friend = keccak256(msg.sender, salt);
+        bytes32 friend = keccak256(abi.encodePacked(msg.sender, salt));
         require(friendSet[friend]);
 
         require(owner != newAddress);
@@ -453,7 +453,7 @@ contract Proxy {
         returns (bool)
     {
         // Only approver
-        bytes32 approver = keccak256(msg.sender, salt);
+        bytes32 approver = keccak256(abi.encodePacked(msg.sender, salt));
         require(approverSet[approver]);
         
         Proposal storage proposal = proposals[id];
@@ -492,7 +492,7 @@ contract Proxy {
     }
 
     function transferOwnership() public returns (bool) {
-        require(now > lastOwnerAction + 5 years);
+        require(now > lastOwnerAction + 1000 days);
         require(beneficiary == msg.sender);
         owner = msg.sender;
     }
