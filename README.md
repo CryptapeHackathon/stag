@@ -45,4 +45,4 @@ cd token && truffle test
 
 ## Contributing
 
-I will be very appreciated for any feedback or contributions.
+We will be very appreciated for any feedback or contributions.
