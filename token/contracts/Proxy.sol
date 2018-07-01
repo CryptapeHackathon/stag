@@ -66,25 +66,6 @@ library ArrayUtil {
         // Not in
         return false;
     }
-
-    /// @notice Check the array is null:
-    /// 1. the length is zero 2. all values of array are zero
-    /// @param _array The array to check from
-    /// @return true if is null, false otherwise
-    function isNull(bytes32[] _array)
-        internal
-        pure
-        returns (bool)
-    {
-        if (_array.length == 0)
-            return true;
-        for (uint i = 0; i < _array.length; i++) {
-            if (bytes32(0x0) != _array[i])
-                return false;
-        }
-
-        return true;
-    }
 }
 
 library AddressArrayUtil {
@@ -143,25 +124,6 @@ library AddressArrayUtil {
         }
         // Not in
         return false;
-    }
-
-    /// @notice Check the array is null:
-    /// 1. the length is zero 2. all values of array are zero
-    /// @param _array The array to check from
-    /// @return true if is null, false otherwise
-    function isNull(address[] _array)
-        internal
-        pure
-        returns (bool)
-    {
-        if (_array.length == 0)
-            return true;
-        for (uint i = 0; i < _array.length; i++) {
-            if (address(0x0) != _array[i])
-                return false;
-        }
-
-        return true;
     }
 }
 
@@ -277,7 +239,7 @@ contract Proxy {
         if (!friendSet[friend]) {
             friends.push(friend);
             friendSet[friend] = true;
-            lock += 24 hours;
+            lock = now + 24 hours;
             return true;
         }
     }
@@ -292,7 +254,7 @@ contract Proxy {
             friendSet[friend] = false;
             
             ArrayUtil.remove(friend, friends);
-            lock += 24 hours;
+            lock = now + 24 hours;
             return true;
         }
     }
@@ -304,7 +266,7 @@ contract Proxy {
         returns(bool)
     {
         threshold = _threshold;
-        lock += 7 days;
+        lock = now + 7 days;
         lastOwnerAction = now;
         return true;
     }
@@ -377,7 +339,7 @@ contract Proxy {
         if (!approverSet[approver]) {
             approvers.push(approver);
             approverSet[approver] = true;
-            approveLock += 7 days;
+            approveLock = now + 7 days;
             return true;
         }
     }
@@ -392,7 +354,7 @@ contract Proxy {
             approverSet[approver] = false;
             
             ArrayUtil.remove(approver, approvers);
-            approveLock += 7 days;
+            approveLock = now + 7 days;
             return true;
         }
     }
@@ -404,7 +366,7 @@ contract Proxy {
         returns(bool)
     {
         minApprove = _minApprove;
-        approveLock += 7 days;
+        approveLock = now + 7 days;
         return true;
     }
 
