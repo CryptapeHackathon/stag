@@ -19,6 +19,7 @@ This project is for providing account safety mechanism for cryptocurrency, in th
 
 * Sha3 + Salt to hide friend address
 * Operation time lock
+* Transfer more by other accounts approvals
 
 ## Prerequisites
 
